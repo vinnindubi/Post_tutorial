@@ -37,7 +37,8 @@ class AuthController extends Controller
             "email"=> $request->email,
             "password"=> bcrypt($request->password),
         ]);
-        $token=$user->createToken("adminToken")->accessToken;
+        $token = $user->createToken('MyAppToken')->accessToken;
+
        
         
         return response()->json([
@@ -61,7 +62,7 @@ class AuthController extends Controller
     // Check if user exists and password is correct
     if ($user && Hash::check($request->password, $user->password)) {
         // Create access token
-        $token = $user->createToken('MyAppToken')->accessToken;
+        $token = $user->createToken('MyAppToken',)->accessToken;
 
         return response()->json([
             'status' => 1,
@@ -86,5 +87,36 @@ class AuthController extends Controller
             "message"=> "user logged out"
         ]);
     }
+    public function index(Request $request)
+                {
+                    $data=User::all();
+                    return response()->json([
+                        "status"=> 1,
+                        "data"=>$data]);
+                }
+    public function show($id)
+                {  $data=User::find($id);
+                    if(!$data){
+                        return response()->json([
+                            "status"=> 0,
+                            "message"=>"failed to load users"]);
+                    }
+                    return response()->json([
+                        "status"=> 1,
+                        "data"=>$data]);
+
+                }
+    public function edit(Request $request)
+                {
+
+                }
+    public function update(Request $request)
+                {
+
+                }                        
+    public function destroy(Request $request)
+                {
+
+                }
 
 }
