@@ -89,7 +89,13 @@ class AuthController extends Controller
     }
     public function index(Request $request)
                 {
-                    $data=User::all();
+                    $data=User::paginate();
+                    if(!$data){
+                        return response()->json([
+                            "status"=> 1,
+                            "message"=>"loading users failed",
+                            "data"=>$data]);
+                    }
                     return response()->json([
                         "status"=> 1,
                         "data"=>$data]);
@@ -106,13 +112,26 @@ class AuthController extends Controller
                         "data"=>$data]);
 
                 }
-    public function edit(Request $request)
-                {
-
-                }
-    public function update(Request $request)
-                {
-
+    public function update(Request $request, $id)
+                { $user=User::find($id);
+                    if(!$user){
+                        return response()->json([
+                            "status"=> 0,
+                            "message"=> "user not found",
+                            "data"=>$user]);
+                    }
+                    $validated= $request->validate([
+                        "firstname"=> "required|sometimes",
+                        "middlename"=> "|sometimes",
+                        "lastname"=> "required|sometimes",
+                        "phonenumber"=> "required|sometimes",
+                    ]);
+                   $user->update($validated);
+                   return response()->json([
+                    "status"=> 1,
+                    "data"=>$user
+                   ]);
+                    
                 }                        
     public function destroy(Request $request)
                 {
