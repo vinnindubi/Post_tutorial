@@ -15,46 +15,45 @@ class CommentController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request, Comment $comment)
+    public function index(Post $post )
     {
-        $comment=Comment::find($comment->id);
-        return response()->json([
-            'status'=>1,
-            'message'=>"comments loaded successfully",
-            "data"=> $comment
-        ]);
-        if(!$comment){
+        $response=Comment::find($post->comments);
+        if(!$response){
             return response()->json([
                 "status"=> 0,
                 "message"=> "failed to load comments",
                 "data"=>null,
             ]);
         }
+                return response()->json([
+            'status'=>1,
+            'message'=>"comments loaded successfully",
+            "data"=> $response
+        ]);
+        
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
-    {
-        //
-    }
+    
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreCommentRequest $request)
+    public function store(Request $request)
 {
     $request->validate([
         'title' => 'required|string|max:255',
         'description' => 'required|string',
     ]);
 
-    $comments = auth()->user()->comments()->create([
+    $comments = Comment::create([
         'title' => $request->title,
         'description' => $request->description,
-        "post_id"=> $request->post,
-        'user_id' => auth()->id(),
+        'post_id'=> $request->post_id,
+        'user_id'=> $request->user_id
+
     ]);
 
     return response()->json([
@@ -67,10 +66,22 @@ class CommentController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Comment $comment)
-    {
-        //
+    public function show($postId, $commentId)
+{
+    $post = Post::find($postId);
+
+    if (!$post) {
+        return response()->json(['message' => 'Post not found.'], 404);
     }
+
+    $comment = $post->comments()->where('id', $commentId)->first();
+
+    if (!$comment) {
+        return response()->json(['message' => 'Comment not found for this post.'], 404);
+    }
+
+    return response()->json($comment, 200);
+}
 
     /**
      * Show the form for editing the specified resource.
@@ -91,8 +102,26 @@ class CommentController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Comment $comment)
+    public function destroy($postId,$id)
+    
     {
-        //
+         $post= Post::find($postId);
+        $response=$post->comments()->where('id', $id)->first();
+        
+        if(!$response){
+            return response()->json([
+                "status"=> 0,
+                "message"=> "comment does not exist"
+            ]);
+        }
+        
+        $response->delete();
+
+        return response()->json([
+            "status"=> 1,
+            "message"=> "user deleted successfully",
+            "data"=>$response
+
+        ]);
     }
 }

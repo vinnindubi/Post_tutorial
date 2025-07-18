@@ -16,5 +16,5 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('users', AuthController::class);
     Route::post('/logout',[AuthController::class,'logout']);
     Route::apiResource('/posts',PostController::class);
-    Route::post('/posts/{post}/comments', [CommentController::class, 'store']);
+    Route::apiResource('/posts/{post}/comments', CommentController::class);
 });

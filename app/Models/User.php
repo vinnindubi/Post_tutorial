@@ -32,7 +32,7 @@ class User extends Authenticatable
         return $this->hasMany(Post::class);
     }
     public function comments(){
-        return $this->hasMany(Comment::class);
+        return $this->hasManyThrough(Comment::class,Post::class);
     }
     /**
      * The attributes that should be hidden for serialization.
