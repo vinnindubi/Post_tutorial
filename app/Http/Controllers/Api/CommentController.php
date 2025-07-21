@@ -41,8 +41,15 @@ class CommentController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
-{
+    public function store(Request $request ,$post)
+    { 
+        $post=Post::find($post);
+        if( !$post ){
+            return response()->json([
+                "status"=> 0,
+                "message"=> "post does not exist"
+            ]);
+        }
     $request->validate([
         'title' => 'required|string|max:255',
         'description' => 'required|string',
@@ -59,7 +66,7 @@ class CommentController extends Controller
     return response()->json([
         'message' => 'Comment created successfully',
         'comment' => $comments
-    ], 201);
+    ]);
 }
 
 
@@ -71,13 +78,13 @@ class CommentController extends Controller
     $post = Post::find($postId);
 
     if (!$post) {
-        return response()->json(['message' => 'Post not found.'], 404);
+        return response()->json(['message' => 'Post not found.']);
     }
 
     $comment = $post->comments()->where('id', $commentId)->first();
 
     if (!$comment) {
-        return response()->json(['message' => 'Comment not found for this post.'], 404);
+        return response()->json(['message' => 'Comment not found for this post.']);
     }
 
     return response()->json($comment, 200);
@@ -86,17 +93,38 @@ class CommentController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Comment $comment)
-    {
-        //
-    }
+    
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateCommentRequest $request, Comment $comment)
-    {
-        //
+    public function update(Request $request,$post,  $comment)
+    { 
+        
+    $validated = $request->validate([
+        'title' => 'required|string|max:255',
+        'description' => 'required|string',
+    ]);
+    $post = Post::find($post);
+    if (!$post) {
+        return response()->json([
+            'message'=> 'post does not exist'
+        ]);
+    }
+    $response=Comment::find($comment);
+        if($response){
+        $comment->update($validated);
+
+        return response()->json([
+            "status" => 1,
+            "message" => "Comment updated",
+            "comment" => $response
+        ]);}else{
+            return response()->json([
+                "status" => 0,
+                "message" => "Comment doesnot exist",
+                "comment" => $response]);
+        }
     }
 
     /**
@@ -106,22 +134,25 @@ class CommentController extends Controller
     
     {
          $post= Post::find($postId);
+         if (!$post) {
+            return response()->json([
+                "status"=>0,
+                "message"=> "post does not exist"]);
+         }
         $response=$post->comments()->where('id', $id)->first();
-        
         if(!$response){
             return response()->json([
                 "status"=> 0,
                 "message"=> "comment does not exist"
             ]);
         }
-        
         $response->delete();
-
         return response()->json([
             "status"=> 1,
             "message"=> "user deleted successfully",
             "data"=>$response
 
         ]);
+        
     }
 }
