@@ -4,11 +4,11 @@ namespace App\Http\Controllers\Api;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Comment;
-use App\Http\Requests\StoreCommentRequest;
-use App\Http\Requests\UpdateCommentRequest;
 use GuzzleHttp\Psr7\Response;
 use App\Models\Post;
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class CommentController extends Controller
 {
@@ -54,19 +54,26 @@ class CommentController extends Controller
         'title' => 'required|string|max:255',
         'description' => 'required|string',
     ]);
+    try{
+        $comments = Comment::create([
+            'title' => $request->title,
+            'description' => $request->description,
+            'post_id'=> $request->post_id,//$request->post_id,
+            'user_id'=> Auth::user()->id
 
-    $comments = Comment::create([
-        'title' => $request->title,
-        'description' => $request->description,
-        'post_id'=> $request->post_id,
-        'user_id'=> $request->user_id
+        ]);
 
-    ]);
-
-    return response()->json([
-        'message' => 'Comment created successfully',
-        'comment' => $comments
-    ]);
+        return response()->json([
+            'message' => 'Comment created successfully',
+            'comment' => $comments
+        ]);
+    }catch(\Exception $e) {
+        Log::error($e->getMessage());
+        return response()->json([
+            "status"=> "failed",
+            "message"=> "failed"
+        ], 500);
+    }
 }
 
 
@@ -98,7 +105,7 @@ class CommentController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request,$post,  $comment)
+    public function update(Request $request,$post, $comment)
     { 
         
     $validated = $request->validate([
@@ -111,9 +118,14 @@ class CommentController extends Controller
             'message'=> 'post does not exist'
         ]);
     }
+    
     $response=Comment::find($comment);
+    try{
         if($response){
-        $comment->update($validated);
+        $response->update([
+            'title'=>$validated["title"],
+            "description"=>$validated["description"],
+        ]);
 
         return response()->json([
             "status" => 1,
@@ -125,6 +137,12 @@ class CommentController extends Controller
                 "message" => "Comment doesnot exist",
                 "comment" => $response]);
         }
+    }catch(\Exception $e){
+        Log::error($e->getMessage());
+        return response()->json([
+            "message" => "failed!!"
+        ],500);
+    }
     }
 
     /**

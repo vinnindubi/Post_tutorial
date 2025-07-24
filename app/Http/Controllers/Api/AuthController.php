@@ -62,7 +62,7 @@ class AuthController extends Controller
     // Check if user exists and password is correct
     if ($user && Hash::check($request->password, $user->password)) {
         // Create access token
-        $token = $user->createToken('MyAppToken',)->accessToken;
+        $token = $user->createToken('MyAppToken')->accessToken;
 
         return response()->json([
             'status' => 1,
